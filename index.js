@@ -1,4 +1,5 @@
 'use strict'
+'use env'
 
 /**
  * static files (404.html, sw.js, conf.js)
@@ -10,6 +11,7 @@ const PREFIX = '/'
 const Config = {
     jsdelivr: 0
 }
+
 
 const whiteList = [] // 白名单，路径里面有包含字符的才会通过，e.g. ['/username/']
 
@@ -61,6 +63,18 @@ addEventListener('fetch', e => {
 })
 
 
+function checkAuth(urlObj) {
+    const pathname = urlObj.pathname
+    const path = pathname.split("/")
+    const id = path[1]
+    if (UUID !== id) {
+      return false
+    }
+
+    urlObj.href = urlObj.href.replace("/" + id, "");
+    return true
+}
+
 function checkUrl(u) {
     for (let i of [exp1, exp2, exp3, exp4, exp5, exp6]) {
         if (u.search(i) === 0) {
@@ -77,6 +91,11 @@ async function fetchHandler(e) {
     const req = e.request
     const urlStr = req.url
     const urlObj = new URL(urlStr)
+
+    if (!checkAuth(urlObj)) {
+      return new Response("blocked", {status: 403})
+    }
+
     let path = urlObj.searchParams.get('q')
     if (path) {
         return Response.redirect('https://' + urlObj.host + PREFIX + path, 301)
@@ -120,6 +139,7 @@ function httpHandler(req, pathname) {
 
     let urlStr = pathname
     let flag = !Boolean(whiteList.length)
+
     for (let i of whiteList) {
         if (urlStr.includes(i)) {
             flag = true
@@ -178,4 +198,3 @@ async function proxy(urlObj, reqInit) {
         headers: resHdrNew,
     })
 }
-
