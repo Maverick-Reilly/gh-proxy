@@ -4,7 +4,7 @@
 /**
  * static files (404.html, sw.js, conf.js)
  */
-const ASSET_URL = 'https://hunshcn.github.io/gh-proxy/'
+const ASSET_URL = 'https://maverick-reilly.github.io/gh-proxy/'
 // 前缀，如果自定义路由为example.com/gh/*，将PREFIX改为 '/gh/'，注意，少一个杠都会错！
 const PREFIX = '/'
 // 分支文件使用jsDelivr镜像的开关，0为关闭，默认关闭
@@ -92,14 +92,16 @@ async function fetchHandler(e) {
     const urlStr = req.url
     const urlObj = new URL(urlStr)
 
-    if (!checkAuth(urlObj)) {
-      return new Response("blocked", {status: 403})
-    }
-
     let path = urlObj.searchParams.get('q')
     if (path) {
-        return Response.redirect('https://' + urlObj.host + PREFIX + path, 301)
+        // return Response.redirect('https://' + urlObj.host + PREFIX + path, 301)
+        return Response.redirect('https://' + urlObj.host + urlObj.pathname + path, 301)
     }
+
+    if (!checkAuth(urlObj)) {
+        return new Response("blocked", {status: 403})
+    }
+
     // cfworker 会把路径中的 `//` 合并成 `/`
     path = urlObj.href.substr(urlObj.origin.length + PREFIX.length).replace(/^https?:\/+/, 'https://')
     if (path.search(exp1) === 0 || path.search(exp5) === 0 || path.search(exp6) === 0 || path.search(exp3) === 0 || path.search(exp4) === 0) {
